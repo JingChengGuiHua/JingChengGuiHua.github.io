@@ -37,6 +37,13 @@
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+
+        /* 隐藏滚动条 */
+        .company-page::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
         }
 
         .page-title {
@@ -351,13 +358,18 @@
         const pages = document.querySelectorAll('.company-page');
         const pageCount = pages.length;
         
-        let startX = 0;
-        let startY = 0;
         let currentPage = 0;
-        let isScrolling = false;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
         let touchStartTime = 0;
-        const slideThreshold = 40;
-        const slideVelocity = 0.3;
+        let isSwiping = false;
+        let isScrolling = false;
+        
+        // 滑动阈值
+        const SWIPE_THRESHOLD = 50;
+        const VELOCITY_THRESHOLD = 0.3;
         
         // 更新页面位置
         function updatePage() {
@@ -368,89 +380,102 @@
             });
         }
         
-        // 处理触摸开始事件
+        // 处理触摸开始
         function handleTouchStart(e) {
             const touch = e.touches[0];
-            startX = touch.clientX;
-            startY = touch.clientY;
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
             touchStartTime = Date.now();
+            isSwiping = false;
             isScrolling = false;
         }
         
-        // 处理触摸移动事件
+        // 处理触摸移动
         function handleTouchMove(e) {
-            if (!startX || !startY) return;
+            if (isScrolling) return;
             
             const touch = e.touches[0];
             const currentX = touch.clientX;
             const currentY = touch.clientY;
             
-            // 计算滑动距离
-            const diffX = startX - currentX;
-            const diffY = startY - currentY;
+            const diffX = touchStartX - currentX;
+            const diffY = touchStartY - currentY;
             
-            // 判断是横向滑动还是纵向滑动
-            if (!isScrolling) {
-                isScrolling = Math.abs(diffY) > Math.abs(diffX);
+            // 如果垂直移动距离大于水平移动距离，认为是滚动而不是滑动翻页
+            if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 10) {
+                isScrolling = true;
+                return;
             }
             
-            // 如果是横向滑动且不是在第一页向左滑动或最后一页向右滑动
-            if (!isScrolling) {
+            // 如果是水平滑动，阻止默认行为
+            if (Math.abs(diffX) > Math.abs(diffY)) {
                 e.preventDefault();
+                isSwiping = true;
                 
-                // 在边界时增加阻力效果
-                if ((currentPage === 0 && diffX < 0) || (currentPage === pageCount - 1 && diffX > 0)) {
-                    pageContainer.style.transform = `translateX(-${currentPage * 100}vw) translateX(${-diffX * 0.3}px)`;
-                } else {
-                    pageContainer.style.transform = `translateX(-${currentPage * 100}vw) translateX(${-diffX}px)`;
+                // 计算页面位移
+                let translateX = -currentPage * 100 + (diffX / window.innerWidth * 100);
+                
+                // 限制边界
+                if (currentPage === 0 && diffX < 0) {
+                    // 在第一页向右滑动，增加阻力效果
+                    translateX = -currentPage * 100 + (diffX / window.innerWidth * 100 * 0.3);
+                } else if (currentPage === pageCount - 1 && diffX > 0) {
+                    // 在最后一页向左滑动，增加阻力效果
+                    translateX = -currentPage * 100 + (diffX / window.innerWidth * 100 * 0.3);
                 }
+                
+                pageContainer.style.transform = `translateX(${translateX}vw)`;
             }
         }
         
-        // 处理触摸结束事件
+        // 处理触摸结束
         function handleTouchEnd(e) {
-            if (!startX || !startY) return;
+            if (!isSwiping || isScrolling) {
+                isSwiping = false;
+                isScrolling = false;
+                return;
+            }
             
             const touch = e.changedTouches[0];
-            const endX = touch.clientX;
-            const endY = touch.clientY;
+            touchEndX = touch.clientX;
+            touchEndY = touch.clientY;
             
-            const diffX = startX - endX;
-            const diffY = startY - endY;
+            const diffX = touchStartX - touchEndX;
+            const diffY = touchStartY - touchEndY;
             const touchDuration = Date.now() - touchStartTime;
             const velocity = Math.abs(diffX) / Math.max(touchDuration, 1);
             
-            // 如果是横向滑动
-            if (!isScrolling) {
-                // 判断是否应该翻页
-                const shouldChangePage = Math.abs(diffX) > slideThreshold || velocity > slideVelocity;
-                
-                if (shouldChangePage) {
-                    if (diffX > 0 && currentPage < pageCount - 1) {
-                        // 向左滑动，下一页
-                        currentPage++;
-                    } else if (diffX < 0 && currentPage > 0) {
-                        // 向右滑动，上一页
-                        currentPage--;
-                    }
+            // 判断是否应该翻页
+            const shouldChangePage = Math.abs(diffX) > SWIPE_THRESHOLD || velocity > VELOCITY_THRESHOLD;
+            
+            if (shouldChangePage) {
+                if (diffX > 0 && currentPage < pageCount - 1) {
+                    // 向左滑动，下一页
+                    currentPage++;
+                } else if (diffX < 0 && currentPage > 0) {
+                    // 向右滑动，上一页
+                    currentPage--;
                 }
-                
-                updatePage();
             }
             
+            updatePage();
+            
             // 重置状态
-            startX = 0;
-            startY = 0;
+            isSwiping = false;
             isScrolling = false;
         }
         
-        // 绑定触摸事件
+        // 绑定事件
         pageContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
         pageContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
         pageContainer.addEventListener('touchend', handleTouchEnd);
-        pageContainer.addEventListener('touchcancel', handleTouchEnd);
+        pageContainer.addEventListener('touchcancel', () => {
+            isSwiping = false;
+            isScrolling = false;
+            updatePage();
+        });
         
-        // 添加键盘支持（左右箭头键）
+        // 键盘支持
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft' && currentPage > 0) {
                 currentPage--;
@@ -461,7 +486,7 @@
             }
         });
         
-        // 添加点击指示器切换页面
+        // 点击指示器切换页面
         dots.forEach((dot, index) => {
             dot.addEventListener('click', () => {
                 currentPage = index;
@@ -469,15 +494,23 @@
             });
         });
         
-        // 初始化
-        updatePage();
-        
-        // 添加页面加载完成后的提示
+        // 页面加载完成后添加提示
         window.addEventListener('load', () => {
+            updatePage();
+            
             setTimeout(() => {
-                document.querySelector('.swipe-hint').style.opacity = '0.5';
+                const hint = document.querySelector('.swipe-hint');
+                hint.style.opacity = '0.5';
+                
+                // 3秒后完全隐藏提示
+                setTimeout(() => {
+                    hint.style.display = 'none';
+                }, 2000);
             }, 3000);
         });
+        
+        // 确保页面在加载后正确显示
+        updatePage();
     </script>
 </body>
 </html>
