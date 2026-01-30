@@ -13,37 +13,66 @@
         }
 
         body {
-            overflow: hidden;
             font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
             background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            height: 100vh;
+            overflow: hidden;
         }
 
-        .page-container {
-            width: 100vw;
+        .main-container {
+            width: 100%;
             height: 100vh;
+            position: relative;
+        }
+
+        /* 使用CSS Scroll Snap实现流畅滑动 */
+        .page-wrapper {
+            width: 100%;
+            height: 100%;
             display: flex;
-            transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            transform: translateX(0);
-            will-change: transform;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox隐藏滚动条 */
+            -ms-overflow-style: none; /* IE隐藏滚动条 */
+            overscroll-behavior-x: contain; /* 防止过度滚动触发浏览器操作 */
+        }
+
+        /* Chrome/Safari隐藏滚动条 */
+        .page-wrapper::-webkit-scrollbar {
+            display: none;
         }
 
         .company-page {
-            width: 100vw;
+            flex: 0 0 100vw;
             height: 100vh;
-            flex-shrink: 0;
+            scroll-snap-align: start;
             padding: 30px 25px 80px;
             background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE and Edge */
+            position: relative;
+            /* 防止页面内部滚动影响整体滑动 */
+            -webkit-overflow-scrolling: touch;
         }
 
-        /* 隐藏滚动条 */
+        /* 隐藏内容区域滚动条 */
         .company-page::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
+            width: 4px;
+        }
+
+        .company-page::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 2px;
+        }
+
+        .company-page::-webkit-scrollbar-thumb {
+            background: #3498db;
+            border-radius: 2px;
         }
 
         .page-title {
@@ -162,6 +191,22 @@
             font-size: 17px;
         }
 
+        .company-name {
+            position: fixed;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #2c3e50;
+            font-size: 18px;
+            font-weight: 600;
+            z-index: 100;
+            background-color: rgba(255, 255, 255, 0.85);
+            padding: 8px 20px;
+            border-radius: 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 改进的页面指示器 */
         .page-indicator {
             position: fixed;
             bottom: 20px;
@@ -192,21 +237,7 @@
             transform: scale(1.1);
         }
 
-        .company-name {
-            position: fixed;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #2c3e50;
-            font-size: 18px;
-            font-weight: 600;
-            z-index: 100;
-            background-color: rgba(255, 255, 255, 0.85);
-            padding: 8px 20px;
-            border-radius: 30px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
+        /* 改进的滑动提示 */
         .swipe-hint {
             position: fixed;
             bottom: 70px;
@@ -222,6 +253,7 @@
             align-items: center;
             gap: 8px;
             animation: pulse 2s infinite;
+            transition: opacity 0.5s ease;
         }
 
         @keyframes pulse {
@@ -246,271 +278,349 @@
             border-radius: 8px;
             background-color: rgba(231, 76, 60, 0.05);
         }
+
+        /* 添加导航按钮 */
+        .nav-btn {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background-color: rgba(52, 152, 219, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 90;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            user-select: none;
+            transition: all 0.3s ease;
+            opacity: 0.8;
+        }
+
+        .nav-btn:hover {
+            opacity: 1;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .nav-btn.prev {
+            left: 15px;
+        }
+
+        .nav-btn.next {
+            right: 15px;
+        }
+
+        .nav-btn.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div class="company-name">河南景成旅游策划设计有限公司</div>
-    <div class="swipe-hint">滑动翻页</div>
-    
-    <div class="page-container" id="pageContainer">
-        <!-- 第1页：企业定位与人才架构 -->
-        <div class="company-page">
-            <h2 class="page-title">企业定位与人才架构</h2>
-            <div class="slogan">景成以匠心，境致显非凡</div>
-            <div class="page-content">
-                <p>作为深耕旅游规划领域的智力服务机构，我们恪守<span class="highlight">"景成以匠心，境致显非凡"</span>的核心价值理念，构建起专业化、系统化、前瞻性的服务矩阵。</p>
-                
-                <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" class="page-img" alt="企业团队">
-                
-                <div class="section-title">人才架构</div>
-                <p>配置由<span class="highlight">15名复合型技术骨干</span>组成的高能级团队，其中硕士层级专业人才9人、本科精英6人，形成战略规划、文旅融合创新、景观艺术设计等多维协同的复合型人才矩阵。</p>
-                <p>团队知识结构覆盖<span class="highlight">旅游管理、人文地理学、历史学、景观设计</span>等交叉学科领域，为项目提供多维度的专业支撑。</p>
-            </div>
-        </div>
-
-        <!-- 第2页：专家领衔 -->
-        <div class="company-page">
-            <h2 class="page-title">专家领衔</h2>
-            <div class="page-content">
-                <div class="expert-info">
-                    <div class="expert-name">何利军 高级工程师</div>
-                    <p>河南省旅游专家委员会特聘专家，在行业深耕逾二十载，自2019年起担任省级旅游度假区及国家4A级景区评定专家组组长。</p>
+    <div class="main-container">
+        <div class="company-name">河南景成旅游策划设计有限公司</div>
+        <div class="swipe-hint" id="swipeHint">滑动翻页</div>
+        
+        <!-- 导航按钮 -->
+        <div class="nav-btn prev" id="prevBtn">‹</div>
+        <div class="nav-btn next" id="nextBtn">›</div>
+        
+        <div class="page-wrapper" id="pageWrapper">
+            <!-- 第1页：企业定位与人才架构 -->
+            <div class="company-page" data-page="0">
+                <h2 class="page-title">企业定位与人才架构</h2>
+                <div class="slogan">景成以匠心，境致显非凡</div>
+                <div class="page-content">
+                    <p>作为深耕旅游规划领域的智力服务机构，我们恪守<span class="highlight">"景成以匠心，境致显非凡"</span>的核心价值理念，构建起专业化、系统化、前瞻性的服务矩阵。</p>
+                    
+                    <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" class="page-img" alt="企业团队">
+                    
+                    <div class="section-title">人才架构</div>
+                    <p>配置由<span class="highlight">15名复合型技术骨干</span>组成的高能级团队，其中硕士层级专业人才9人、本科精英6人，形成战略规划、文旅融合创新、景观艺术设计等多维协同的复合型人才矩阵。</p>
+                    <p>团队知识结构覆盖<span class="highlight">旅游管理、人文地理学、历史学、景观设计</span>等交叉学科领域，为项目提供多维度的专业支撑。</p>
+                    <p>配置由<span class="highlight">15名复合型技术骨干</span>组成的高能级团队，其中硕士层级专业人才9人、本科精英6人，形成战略规划、文旅融合创新、景观艺术设计等多维协同的复合型人才矩阵。</p>
+                    <p>团队知识结构覆盖<span class="highlight">旅游管理、人文地理学、历史学、景观设计</span>等交叉学科领域，为项目提供多维度的专业支撑。</p>
                 </div>
-                
-                <img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" class="page-img" alt="专家指导">
-                
-                <div class="section-title">专业成就</div>
-                <p>独创旅游标准化建设<span class="highlight">"三维评估模型"</span>：标准体系建构、动态监测机制、痛点破解方案三位一体的系统化理论框架。</p>
-                <p>成功指导浚县、新安、歙县等全域旅游示范区创建，主导南阳月季博览园、信阳城阳城考古遗址公园等4A级景区提升项目。</p>
-                <p>护航伏牛山滑雪旅游度假地、王屋山5A景区等重大项目创建，保持<span class="highlight">100%的创建成功率</span>记录。</p>
             </div>
-        </div>
 
-        <!-- 第3页：5A经典案例 -->
-        <div class="company-page">
-            <h2 class="page-title">5A经典案例</h2>
-            <div class="page-content">
-                <p>景成规划谋奇智，创奇效，以<span class="highlight">"三省一达"</span>（即省时、省钱、省力、达标）的创建优势致力于景区AAAAA品牌提升。规划实战12个，创建质量和效率受到国家文旅部、各地政府和旅游企业的高度认可。</p>
-                
-                <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" class="page-img" alt="5A景区案例">
-                
-                <div class="section-title">经典案例展示</div>
-                <ul class="case-list">
-                    <li><span class="highlight">创5A速度之最</span>—河南省济源王屋山景区5A级景区提升创建指导</li>
-                    <li><span class="highlight">居游一体创建典范之最</span>—安徽歙县徽州古城旅游区5A级景区提升创建指导</li>
-                    <li><span class="highlight">5A提升规划创建范本之最</span>—苏州市吴中环太湖旅游区5A级景区提升创建指导</li>
-                    <li><span class="highlight">红绿结合创5A先河</span>—江苏句容茅山景区5A级景区提升创建指导</li>
-                    <li><span class="highlight">带动全区117个行政村脱贫典范</span>—湖北黄陂木兰文化旅游区5A级景区提升创建指导</li>
-                    <li><span class="highlight">联创景区距离最远创5A之最</span>—河南西峡老界岭恐龙遗迹园5A级景区提升创建指导</li>
-                    <li><span class="highlight">辽宁第一家山岳型5A景区</span>—辽宁鞍山景区5A级景区提升创建指导</li>
-                    <li><span class="highlight">市区创5A改善环境促环保典范之最</span>—江苏徐州云龙湖旅游景区5A级景区提升创建指导</li>
-                    <li><span class="highlight">民营企业创建5A景区典范</span>—新疆乌鲁木齐天山大峡谷5A级景区提升创建指导</li>
-                    <li><span class="highlight">当代建筑创5A先河</span>—云南昆明世博园5A级景区提升创建指导</li>
-                    <li><span class="highlight">矿山生态修复5A先河</span>—新疆阿勒泰地区可可托海景区5A级景区提升创建指导</li>
-                    <li><span class="highlight">旅游扶贫、致富老区典范</span>—安徽六安天堂寨旅游景区5A级景区提升创建指导</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- 第4页：服务体系 -->
-        <div class="company-page">
-            <h2 class="page-title">服务体系</h2>
-            <div class="page-content">
-                <p>创新构建<span class="highlight">"三维协同"</span>专业服务体系，通过流程再造与服务创新，实现旅游规划领域的全要素整合与全流程赋能。</p>
-                
-                <img src="https://images.unsplash.com/photo-1559136555-9303baea8ebd?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" class="page-img" alt="服务体系">
-                
-                <div class="section-title">三维协同服务体系</div>
-                <div class="service-system">
-                    <div class="service-item">
-                        <div class="service-item-title">1. 全周期标准化管控系统</div>
-                        <p>涵盖项目立项、方案编制、验收评估的全链条管理，确保每个环节都符合最高专业标准。</p>
+            <!-- 第2页：专家领衔 -->
+            <div class="company-page" data-page="1">
+                <h2 class="page-title">专家领衔</h2>
+                <div class="page-content">
+                    <div class="expert-info">
+                        <div class="expert-name">何利军 高级工程师</div>
+                        <p>河南省旅游专家委员会特聘专家，在行业深耕逾二十载，自2019年起担任省级旅游度假区及国家4A级景区评定专家组组长。</p>
                     </div>
                     
-                    <div class="service-item">
-                        <div class="service-item-title">2. 驻地化技术支撑体系</div>
-                        <p>组建项目专班实施驻场指导，确保技术方案精准落地，实时解决项目推进中的各类问题。</p>
+                    <img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" class="page-img" alt="专家指导">
+                    
+                    <div class="section-title">专业成就</div>
+                    <p>独创旅游标准化建设<span class="highlight">"三维评估模型"</span>：标准体系建构、动态监测机制、痛点破解方案三位一体的系统化理论框架。</p>
+                    <p>成功指导浚县、新安、歙县等全域旅游示范区创建，主导南阳月季博览园、信阳城阳城考古遗址公园等4A级景区提升项目。</p>
+                    <p>护航伏牛山滑雪旅游度假地、王屋山5A景区等重大项目创建，保持<span class="highlight">100%的创建成功率</span>记录。</p>
+                </div>
+            </div>
+
+            <!-- 第3页：5A经典案例 -->
+            <div class="company-page" data-page="2">
+                <h2 class="page-title">5A经典案例</h2>
+                <div class="page-content">
+                    <p>景成规划谋奇智，创奇效，以<span class="highlight">"三省一达"</span>（即省时、省钱、省力、达标）的创建优势致力于景区AAAAA品牌提升。规划实战12个，创建质量和效率受到国家文旅部、各地政府和旅游企业的高度认可。</p>
+                    
+                    <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" class="page-img" alt="5A景区案例">
+                    
+                    <div class="section-title">经典案例展示</div>
+                    <ul class="case-list">
+                        <li><span class="highlight">创5A速度之最</span>—河南省济源王屋山景区5A级景区提升创建指导</li>
+                        <li><span class="highlight">居游一体创建典范之最</span>—安徽歙县徽州古城旅游区5A级景区提升创建指导</li>
+                        <li><span class="highlight">5A提升规划创建范本之最</span>—苏州市吴中环太湖旅游区5A级景区提升创建指导</li>
+                        <li><span class="highlight">红绿结合创5A先河</span>—江苏句容茅山景区5A级景区提升创建指导</li>
+                        <li><span class="highlight">带动全区117个行政村脱贫典范</span>—湖北黄陂木兰文化旅游区5A级景区提升创建指导</li>
+                        <li><span class="highlight">联创景区距离最远创5A之最</span>—河南西峡老界岭恐龙遗迹园5A级景区提升创建指导</li>
+                        <li><span class="highlight">辽宁第一家山岳型5A景区</span>—辽宁鞍山景区5A级景区提升创建指导</li>
+                        <li><span class="highlight">市区创5A改善环境促环保典范之最</span>—江苏徐州云龙湖旅游景区5A级景区提升创建指导</li>
+                        <li><span class="highlight">民营企业创建5A景区典范</span>—新疆乌鲁木齐天山大峡谷5A级景区提升创建指导</li>
+                        <li><span class="highlight">当代建筑创5A先河</span>—云南昆明世博园5A级景区提升创建指导</li>
+                        <li><span class="highlight">矿山生态修复5A先河</span>—新疆阿勒泰地区可可托海景区5A级景区提升创建指导</li>
+                        <li><span class="highlight">旅游扶贫、致富老区典范</span>—安徽六安天堂寨旅游景区5A级景区提升创建指导</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 第4页：服务体系 -->
+            <div class="company-page" data-page="3">
+                <h2 class="page-title">服务体系</h2>
+                <div class="page-content">
+                    <p>创新构建<span class="highlight">"三维协同"</span>专业服务体系，通过流程再造与服务创新，实现旅游规划领域的全要素整合与全流程赋能。</p>
+                    
+                    <img src="https://images.unsplash.com/photo-1559136555-9303baea8ebd?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" class="page-img" alt="服务体系">
+                    
+                    <div class="section-title">三维协同服务体系</div>
+                    <div class="service-system">
+                        <div class="service-item">
+                            <div class="service-item-title">1. 全周期标准化管控系统</div>
+                            <p>涵盖项目立项、方案编制、验收评估的全链条管理，确保每个环节都符合最高专业标准。</p>
+                        </div>
+                        
+                        <div class="service-item">
+                            <div class="service-item-title">2. 驻地化技术支撑体系</div>
+                            <p>组建项目专班实施驻场指导，确保技术方案精准落地，实时解决项目推进中的各类问题。</p>
+                        </div>
+                        
+                        <div class="service-item">
+                            <div class="service-item-title">3. 管家式服务机制</div>
+                            <p>提供从前期资源评估、中期动态调优到后期持续赋能的增值服务，实现项目全生命周期管理。</p>
+                        </div>
                     </div>
                     
-                    <div class="service-item">
-                        <div class="service-item-title">3. 管家式服务机制</div>
-                        <p>提供从前期资源评估、中期动态调优到后期持续赋能的增值服务，实现项目全生命周期管理。</p>
-                    </div>
+                    <div class="section-title">服务承诺</div>
+                    <p>我们坚持<span class="highlight">"三省一达"</span>的服务理念，致力于为每个合作伙伴提供省时、省钱、省力且完全达标的专业服务，在旅游规划领域树立行业标杆。</p>
+                    <p>我们坚持<span class="highlight">"三省一达"</span>的服务理念，致力于为每个合作伙伴提供省时、省钱、省力且完全达标的专业服务，在旅游规划领域树立行业标杆。</p>
+                    <p>我们坚持<span class="highlight">"三省一达"</span>的服务理念，致力于为每个合作伙伴提供省时、省钱、省力且完全达标的专业服务，在旅游规划领域树立行业标杆。</p>
                 </div>
-                
-                <div class="section-title">服务承诺</div>
-                <p>我们坚持<span class="highlight">"三省一达"</span>的服务理念，致力于为每个合作伙伴提供省时、省钱、省力且完全达标的专业服务，在旅游规划领域树立行业标杆。</p>
             </div>
         </div>
-    </div>
 
-    <div class="page-indicator" id="pageIndicator">
-        <div class="indicator-dot active"></div>
-        <div class="indicator-dot"></div>
-        <div class="indicator-dot"></div>
-        <div class="indicator-dot"></div>
+        <div class="page-indicator" id="pageIndicator">
+            <div class="indicator-dot active"></div>
+            <div class="indicator-dot"></div>
+            <div class="indicator-dot"></div>
+            <div class="indicator-dot"></div>
+        </div>
     </div>
 
     <script>
-        const pageContainer = document.getElementById('pageContainer');
+        // 获取DOM元素
+        const pageWrapper = document.getElementById('pageWrapper');
         const pageIndicator = document.getElementById('pageIndicator');
         const dots = pageIndicator.querySelectorAll('.indicator-dot');
         const pages = document.querySelectorAll('.company-page');
-        const pageCount = pages.length;
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const swipeHint = document.getElementById('swipeHint');
         
+        const pageCount = pages.length;
         let currentPage = 0;
+        let isScrolling = false;
+        let scrollTimeout;
         let touchStartX = 0;
         let touchStartY = 0;
         let touchEndX = 0;
         let touchEndY = 0;
         let touchStartTime = 0;
-        let isSwiping = false;
-        let isScrolling = false;
+        let isDragging = false; // 跟踪是否正在拖拽
         
-        // 滑动阈值
-        const SWIPE_THRESHOLD = 50;
-        const VELOCITY_THRESHOLD = 0.3;
-        
-        // 更新页面位置
-        function updatePage() {
-            pageContainer.style.transform = `translateX(-${currentPage * 100}vw)`;
-            
+        // 更新页面指示器
+        function updateIndicator() {
             dots.forEach((dot, index) => {
                 dot.classList.toggle('active', index === currentPage);
             });
+            
+            // 更新导航按钮显示
+            prevBtn.classList.toggle('hidden', currentPage === 0);
+            nextBtn.classList.toggle('hidden', currentPage === pageCount - 1);
         }
         
-        // 处理触摸开始
-        function handleTouchStart(e) {
-            const touch = e.touches[0];
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
-            touchStartTime = Date.now();
-            isSwiping = false;
-            isScrolling = false;
+        // 滚动到指定页面
+        function scrollToPage(pageIndex) {
+            if (pageIndex < 0 || pageIndex >= pageCount) return;
+            
+            isScrolling = true;
+            currentPage = pageIndex;
+            
+            // 使用scrollTo实现平滑滚动
+            pageWrapper.scrollTo({
+                left: window.innerWidth * pageIndex,
+                behavior: 'smooth'
+            });
+            
+            updateIndicator();
+            
+            // 重置滚动状态
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                isScrolling = false;
+            }, 600); // 增加延迟时间以确保动画完成
         }
         
-        // 处理触摸移动
-        function handleTouchMove(e) {
+        // 监听滚动事件以检测当前页面
+        function handleScroll() {
             if (isScrolling) return;
             
-            const touch = e.touches[0];
-            const currentX = touch.clientX;
-            const currentY = touch.clientY;
+            const scrollLeft = pageWrapper.scrollLeft;
+            const pageIndex = Math.round(scrollLeft / window.innerWidth);
             
-            const diffX = touchStartX - currentX;
-            const diffY = touchStartY - currentY;
-            
-            // 如果垂直移动距离大于水平移动距离，认为是滚动而不是滑动翻页
-            if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 10) {
-                isScrolling = true;
-                return;
-            }
-            
-            // 如果是水平滑动，阻止默认行为
-            if (Math.abs(diffX) > Math.abs(diffY)) {
-                e.preventDefault();
-                isSwiping = true;
-                
-                // 计算页面位移
-                let translateX = -currentPage * 100 + (diffX / window.innerWidth * 100);
-                
-                // 限制边界
-                if (currentPage === 0 && diffX < 0) {
-                    // 在第一页向右滑动，增加阻力效果
-                    translateX = -currentPage * 100 + (diffX / window.innerWidth * 100 * 0.3);
-                } else if (currentPage === pageCount - 1 && diffX > 0) {
-                    // 在最后一页向左滑动，增加阻力效果
-                    translateX = -currentPage * 100 + (diffX / window.innerWidth * 100 * 0.3);
-                }
-                
-                pageContainer.style.transform = `translateX(${translateX}vw)`;
+            if (pageIndex >= 0 && pageIndex < pageCount && pageIndex !== currentPage) {
+                currentPage = pageIndex;
+                updateIndicator();
             }
         }
         
-        // 处理触摸结束
+        // 触摸开始
+        function handleTouchStart(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchStartTime = Date.now();
+            isDragging = false; // 重置拖拽状态
+            
+            // 停止正在进行的平滑滚动
+            pageWrapper.style.scrollBehavior = 'auto';
+        }
+        
+        // 触摸移动
+        function handleTouchMove(e) {
+            if (isDragging) {
+                // 如果已经在拖拽中，继续让浏览器处理滚动
+                return;
+            }
+            
+            // 计算移动距离
+            const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
+            const deltaX = Math.abs(currentX - touchStartX);
+            const deltaY = Math.abs(currentY - touchStartY);
+            
+            // 如果水平移动距离更大，且超过阈值，则认为是水平滑动
+            if (deltaX > deltaY && deltaX > 10) {
+                isDragging = true;
+                e.preventDefault(); // 阻止默认行为以确保水平滑动
+            }
+        }
+        
+        // 触摸结束
         function handleTouchEnd(e) {
-            if (!isSwiping || isScrolling) {
-                isSwiping = false;
-                isScrolling = false;
-                return;
-            }
+            touchEndX = e.changedTouches[0].clientX;
+            touchEndY = e.changedTouches[0].clientY;
             
-            const touch = e.changedTouches[0];
-            touchEndX = touch.clientX;
-            touchEndY = touch.clientY;
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+            const deltaTime = Date.now() - touchStartTime;
             
-            const diffX = touchStartX - touchEndX;
-            const diffY = touchStartY - touchEndY;
-            const touchDuration = Date.now() - touchStartTime;
-            const velocity = Math.abs(diffX) / Math.max(touchDuration, 1);
+            // 恢复平滑滚动行为
+            pageWrapper.style.scrollBehavior = 'smooth';
             
-            // 判断是否应该翻页
-            const shouldChangePage = Math.abs(diffX) > SWIPE_THRESHOLD || velocity > VELOCITY_THRESHOLD;
+            // 判断是否为有效的水平滑动
+            const minSwipeDistance = 30; // 最小滑动距离
+            const maxSwipeTime = 500; // 最大滑动时间
             
-            if (shouldChangePage) {
-                if (diffX > 0 && currentPage < pageCount - 1) {
-                    // 向左滑动，下一页
-                    currentPage++;
-                } else if (diffX < 0 && currentPage > 0) {
+            if (Math.abs(deltaX) > minSwipeDistance && deltaTime < maxSwipeTime) {
+                if (deltaX > 0 && currentPage > 0) {
                     // 向右滑动，上一页
-                    currentPage--;
+                    scrollToPage(currentPage - 1);
+                } else if (deltaX < 0 && currentPage < pageCount - 1) {
+                    // 向左滑动，下一页
+                    scrollToPage(currentPage + 1);
+                }
+            } else if (!isDragging) {
+                // 如果移动距离不够或时间过长，检查是否是轻触
+                const distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+                if (distance < 10) {
+                    // 这是一个轻触，不做处理
                 }
             }
             
-            updatePage();
-            
-            // 重置状态
-            isSwiping = false;
-            isScrolling = false;
+            isDragging = false;
         }
         
-        // 绑定事件
-        pageContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
-        pageContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
-        pageContainer.addEventListener('touchend', handleTouchEnd);
-        pageContainer.addEventListener('touchcancel', () => {
-            isSwiping = false;
-            isScrolling = false;
-            updatePage();
-        });
-        
-        // 键盘支持
-        document.addEventListener('keydown', (e) => {
+        // 添加键盘支持
+        function handleKeyDown(e) {
             if (e.key === 'ArrowLeft' && currentPage > 0) {
-                currentPage--;
-                updatePage();
+                scrollToPage(currentPage - 1);
             } else if (e.key === 'ArrowRight' && currentPage < pageCount - 1) {
-                currentPage++;
-                updatePage();
+                scrollToPage(currentPage + 1);
             }
-        });
+        }
         
-        // 点击指示器切换页面
-        dots.forEach((dot, index) => {
-            dot.addEventListener('click', () => {
-                currentPage = index;
-                updatePage();
-            });
-        });
-        
-        // 页面加载完成后添加提示
-        window.addEventListener('load', () => {
-            updatePage();
+        // 初始化
+        function init() {
+            // 绑定事件
+            pageWrapper.addEventListener('scroll', handleScroll, { passive: true });
+            pageWrapper.addEventListener('touchstart', handleTouchStart, { passive: true });
+            pageWrapper.addEventListener('touchmove', handleTouchMove, { passive: false });
+            pageWrapper.addEventListener('touchend', handleTouchEnd, { passive: true });
             
+            document.addEventListener('keydown', handleKeyDown);
+            
+            // 导航按钮事件
+            prevBtn.addEventListener('click', () => scrollToPage(currentPage - 1));
+            nextBtn.addEventListener('click', () => scrollToPage(currentPage + 1));
+            
+            // 页面指示器点击事件
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => scrollToPage(index));
+            });
+            
+            // 隐藏滑动提示
             setTimeout(() => {
-                const hint = document.querySelector('.swipe-hint');
-                hint.style.opacity = '0.5';
-                
-                // 3秒后完全隐藏提示
+                swipeHint.style.opacity = '0';
                 setTimeout(() => {
-                    hint.style.display = 'none';
-                }, 2000);
+                    swipeHint.style.display = 'none';
+                }, 500);
             }, 3000);
-        });
+            
+            // 初始更新
+            updateIndicator();
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', init);
         
         // 确保页面在加载后正确显示
-        updatePage();
+        updateIndicator();
+        
+        // 防止页面缩放
+        document.addEventListener('gesturestart', function (e) {
+            e.preventDefault();
+        });
+        document.addEventListener('gesturechange', function (e) {
+            e.preventDefault();
+        });
+        document.addEventListener('gestureend', function (e) {
+            e.preventDefault();
+        });
     </script>
 </body>
 </html>
