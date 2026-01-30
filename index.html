@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>公司简介</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        .page-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            transition: transform 0.5s ease;
+            transform: translateX(0);
+        }
+
+        .company-page {
+            width: 100vw;
+            height: 100vh;
+            flex-shrink: 0;
+            padding: 40px 25px;
+            background-color: #f8f9fa;
+            overflow-y: auto;
+            /* 优化：禁止单页内的横向滚动，减少对翻页的干扰 */
+            overflow-x: hidden;
+        }
+
+        .page-title {
+            font-size: 24px;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .page-content {
+            font-size: 16px;
+            color: #34495e;
+            line-height: 1.8;
+        }
+
+        .page-img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 20px 0;
+            /* 优化：禁止图片被拖拽，避免干扰滑动 */
+            pointer-events: none;
+        }
+
+        .page-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+
+        .indicator-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #bdc3c7;
+        }
+
+        .indicator-dot.active {
+            background-color: #3498db;
+            width: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container" id="pageContainer">
+        <!-- 第1页：企业概况 -->
+        <div class="company-page">
+            <h2 class="page-title">企业概况</h2>
+            <div class="page-content">
+                <p>XX科技有限公司成立于2010年，是一家专注于人工智能、大数据技术研发与落地的高新技术企业。</p>
+                <img src="https://picsum.photos/600/300?random=1" class="page-img" alt="公司办公环境">
+                <p>公司总部位于北京中关村科技园区，在上海、广州、深圳设有分公司，员工总数超过500人，其中研发人员占比超过70%。</p>
+                <p>自成立以来，公司始终坚持"技术驱动创新，服务创造价值"的经营理念，为各行各业提供优质的数字化解决方案。</p>
+            </div>
+        </div>
+
+        <!-- 第2页：发展历程 -->
+        <div class="company-page">
+            <h2 class="page-title">发展历程</h2>
+            <div class="page-content">
+                <p>2010年：XX科技有限公司正式成立，落户北京中关村；</p>
+                <p>2013年：推出首款自主研发的大数据分析平台，获得行业高度认可；</p>
+                <img src="https://picsum.photos/600/300?random=2" class="page-img" alt="发展里程碑">
+                <p>2016年：完成A轮融资，金额达1亿元，同时成立上海分公司；</p>
+                <p>2020年：入选国家高新技术企业名单，研发团队规模突破300人；</p>
+                <p>2024年：业务覆盖全国30个省市，服务客户超过1000家。</p>
+            </div>
+        </div>
+
+        <!-- 第3页：核心业务 -->
+        <div class="company-page">
+            <h2 class="page-title">核心业务</h2>
+            <div class="page-content">
+                <p>1. 人工智能解决方案：提供图像识别、自然语言处理、智能客服等定制化AI服务；</p>
+                <p>2. 大数据平台搭建：为企业提供数据采集、存储、分析、可视化全流程解决方案；</p>
+                <img src="https://picsum.photos/600/300?random=3" class="page-img" alt="核心业务展示">
+                <p>3. 数字化转型咨询：帮助传统企业完成数字化升级，提升运营效率和核心竞争力；</p>
+                <p>4. 技术人才培训：面向企业和个人提供AI、大数据相关技术培训服务。</p>
+            </div>
+        </div>
+
+        <!-- 第4页：联系方式 -->
+        <div class="company-page">
+            <h2 class="page-title">联系方式</h2>
+            <div class="page-content">
+                <p>总部地址：北京市海淀区中关村大街XX号XX大厦XX层</p>
+                <p>联系电话：010-XXXX-XXXX</p>
+                <img src="https://picsum.photos/600/300?random=4" class="page-img" alt="公司地址地图">
+                <p>电子邮箱：contact@xxtech.com</p>
+                <p>官方网站：www.xxtech.com</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-indicator" id="pageIndicator">
+        <div class="indicator-dot active"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+    </div>
+
+    <script>
+        const pageContainer = document.getElementById('pageContainer');
+        const pageIndicator = document.getElementById('pageIndicator');
+        const dots = pageIndicator.querySelectorAll('.indicator-dot');
+        const pageCount = document.querySelectorAll('.company-page').length;
+
+        let startX = 0;
+        let endX = 0;
+        let currentPage = 0;
+        // 优化1：降低滑动阈值，从50改为20，更容易触发翻页
+        const slideThreshold = 20;
+
+        // 优化2：触摸开始时，阻止事件冒泡，避免干扰
+        pageContainer.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            e.preventDefault(); // 阻止默认行为（如单页内纵向滚动）
+        }, { passive: false });
+
+        pageContainer.addEventListener('touchmove', (e) => {
+            endX = e.touches[0].clientX;
+            e.preventDefault(); // 阻止默认行为，确保横向滑动优先
+        }, { passive: false });
+
+        pageContainer.addEventListener('touchend', () => {
+            const slideDistance = startX - endX;
+
+            // 左滑翻下一页
+            if (slideDistance > slideThreshold && currentPage < pageCount - 1) {
+                currentPage++;
+                updatePage();
+            }
+
+            // 右滑翻上一页
+            if (slideDistance < -slideThreshold && currentPage > 0) {
+                currentPage--;
+                updatePage();
+            }
+
+            startX = 0;
+            endX = 0;
+        });
+
+        function updatePage() {
+            pageContainer.style.transform = `translateX(-${currentPage * 100}vw)`;
+
+            dots.forEach((dot, index) => {
+                dot.classList.remove('active');
+                if (index === currentPage) {
+                    dot.classList.add('active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
